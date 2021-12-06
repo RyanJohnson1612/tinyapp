@@ -47,8 +47,10 @@ app.get('/urls/:shortURL', (req, res) => {
 
 // POST routes
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('Ok');
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL
+  res.redirect(`/urls/${shortURL}`);
 })
 
 app.listen(PORT, () => {
