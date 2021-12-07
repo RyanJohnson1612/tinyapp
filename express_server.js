@@ -50,13 +50,27 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 })
 
-// POST routes
+// POST Routes
 app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL
   res.redirect(`/urls/${shortURL}`);
 })
+
+app.post('/urls/:shortURL', (req, res) => {
+  const longURL = req.body.longURL;
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = longURL;
+  res.redirect('/urls');
+});
+
+// DELETE Routes
+app.post('/urls/:shortURL/delete', (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls')
+});
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}!`);

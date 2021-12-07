@@ -15,7 +15,12 @@
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>" target="_blank"><%= shortURL %></a></p>
       </div>
     <div class="card-footer text-muted">
-      <a href="/urls/new" class="btn btn-primary">Shorten New URL</a>
+      <h4>Edit</h4>
+      <form class="form-inline justify-content-center" action="/urls/<%= shortURL %>" method="post">
+        <label for="longURL">New URL:</label>
+        <input class="form-control" type="text" name="longURL" value="<%= longURL %>">
+        <button class="btn btn-primary" type="submit">Update</button>
+      </form>
     </div>
   </div>
   <!-- Bootstrap JS -->
