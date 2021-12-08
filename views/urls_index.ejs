@@ -42,11 +42,11 @@
           </tbody>
         </table>
         <% } else { %>
-          <p>You haven't created an TinyURLs</p>
+          <div class="alert alert-primary">You haven't created an TinyURLs</div>
         <% } %>
       <a href="/urls/new" class="btn btn-primary">Shorten New URL</a>
     <% } else { %>
-      <h4>Please <a href="/login">login</a> or <a href="/register">register</a> to create and view your tinyURLs</h4>
+      <div class="alert alert-danger">Please <a href="/login">login</a> or <a href="/register">register</a> to create and view your tinyURLs</div>
     <% } %>
   </main>
   <!-- Bootstrap JS -->

@@ -81,6 +81,10 @@ const users = {
     return urls;
   }
 
+  const isUsersUrl = function(id, url) {
+    return urlDatabase[url].userID === id;
+  }
+
 /****************************
   Routes
  ****************************/
@@ -106,8 +110,16 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, url: urlDatabase[req.params.shortURL], user: findUserById(req.cookies.id) };
-  res.render('urls_show', templateVars);
+  if (req.cookies.id && isUsersUrl(req.cookies.id, req.params.shortURL)) {
+    const templateVars = { shortURL: req.params.shortURL, url: urlDatabase[req.params.shortURL], user: findUserById(req.cookies.id), errorMsg: null };
+    res.render('urls_show', templateVars);
+  } else if (req.cookies.id && !isUsersUrl(req.cookies.id, req.params.shortURL)) {
+    const templateVars = { shortURL: req.params.shortURL, url: urlDatabase[req.params.shortURL], user: findUserById(req.cookies.id), errorMsg: 'This isn\'t your url, so you cannot update it.' };
+    res.render('urls_show', templateVars);
+  } else {
+    res.status(403);
+    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tiny URL.'})
+  }
 });
 
 app.get('/u/:shortURL', (req, res) => {
@@ -151,8 +163,15 @@ app.post('/urls', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect('/urls');
+
+  if(isUsersUrl(req.cookies.id, shortURL)) {
+    urlDatabase[shortURL] = longURL;
+    res.redirect('/urls');
+  } else {
+    res.status(403);
+    res.write('You isn\'t your url, you cannot update it.');
+    res.end();
+  }
 });
 
 app.post('/register', (req, res) => {
@@ -199,8 +218,14 @@ app.post('/logout', (req, res) => {
 // DELETE Routes
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  if(isUsersUrl(req.cookies.id, shortURL)) {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  } else {
+    res.status(403);
+    res.write('This isn\'t your url, you cannot delete it.');
+    res.end();
+  }
 });
 
 app.listen(PORT, () => {

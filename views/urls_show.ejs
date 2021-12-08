@@ -8,22 +8,28 @@
 
 <body>
   <%- include('partials/_header') %>
-  <div class="card text-center">
-      <div class="card-header"></div>
-      <div class="card-body">
-        <h5 class="card-title">TinyURL for: <%= url.longURL %></h5>
-        <p class="card-text">Short URL: <a href="/u/<%= shortURL %>" target="_blank"><%= shortURL %></a></p>
-        <h6 class="mb-0">TinyURL visited <%= url.visits %> times</h6>
+  <main style="margin: 1em;">
+    <% if(!errorMsg) { %>
+      <div class="card text-center">
+          <div class="card-header"></div>
+          <div class="card-body">
+            <h5 class="card-title">TinyURL for: <%= url.longURL %></h5>
+            <p class="card-text">Short URL: <a href="/u/<%= shortURL %>" target="_blank"><%= shortURL %></a></p>
+            <h6 class="mb-0">TinyURL visited <%= url.visits %> times</h6>
+          </div>
+        <div class="card-footer text-muted">
+          <h4>Edit</h4>
+          <form class="form-inline justify-content-center" action="/urls/<%= shortURL %>" method="post">
+            <label for="longURL">New URL:</label>
+            <input class="form-control ml-2" type="text" name="longURL" value="<%= url.longURL %>">
+            <button class="btn btn-primary ml-2" type="submit">Update</button>
+          </form>
+        </div>
       </div>
-    <div class="card-footer text-muted">
-      <h4>Edit</h4>
-      <form class="form-inline justify-content-center" action="/urls/<%= shortURL %>" method="post">
-        <label for="longURL">New URL:</label>
-        <input class="form-control ml-2" type="text" name="longURL" value="<%= url.longURL %>">
-        <button class="btn btn-primary ml-2" type="submit">Update</button>
-      </form>
-    </div>
-  </div>
+    <% } else { %>
+      <div class="alert alert-danger mt-3 mb-3"><%= errorMsg %> Click <a href="/urls">here</a> to go back home.</div>
+    <% } %>
+  </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
