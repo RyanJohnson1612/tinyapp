@@ -163,9 +163,14 @@ app.post('/urls', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = req.params.shortURL;
+  const visits = urlDatabase[shortURL].visits;
 
   if(isUsersUrl(req.cookies.id, shortURL)) {
-    urlDatabase[shortURL] = longURL;
+    urlDatabase[shortURL] = { 
+      longURL, 
+      visits,
+      userID: req.cookies.id
+    };
     res.redirect('/urls');
   } else {
     res.status(403);
