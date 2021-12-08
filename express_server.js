@@ -7,9 +7,16 @@ const PORT = 8080;
 // set view engine to use ejs
 app.set('view engine', 'ejs');
 
-// Middleware
+/****************************
+  Middleware
+ ****************************/
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
+
+/****************************
+  Helper functions
+ ****************************/
 
 const generateRandomString = function() {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -20,9 +27,39 @@ const generateRandomString = function() {
   return randomString;
 };
 
+const findUserById = function(id) {
+  for (const key in users) {
+    if (id === key) {
+      return users[key];
+    }
+  }
+  return null;
+};
+
+const findUserByEmail = function(email) {
+  for (const key in users) {
+    if (email === users[key].email) {
+      return users[key];
+    }
+  }
+  return null;
+};
+
+/****************************
+  Data
+ ****************************/
+
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
   '9sm5xK': 'http://www.google.com'
+};
+
+const users = {
+  'eUzup9': {
+    id: 'eUzup9',
+    email: 'jim@testman.com',
+    password: 'password1'
+  }
 };
 
 /****************************
@@ -35,18 +72,23 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies.username };
+  const templateVars = { urls: urlDatabase, user: findUserById(req.cookies.id) };
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies.username };
+  const templateVars = { user: findUserById(req.cookies.id) };
   res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies.username };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: findUserById(req.cookies.id) };
   res.render('urls_show', templateVars);
+});
+
+app.get('/register', (req, res) => {
+  const templateVars = { user: findUserById(req.cookies.id), errorMsg: null };
+  res.render('registration', templateVars);
 });
 
 app.get('/u/:shortURL', (req, res) => {
@@ -69,13 +111,35 @@ app.post('/urls/:shortURL', (req, res) => {
   res.redirect('/urls');
 });
 
+app.post('/register', (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  
+  if(email && password && !findUserByEmail(email)) {
+    users[id] = {
+      id,
+      email,
+      password
+    };
+    res.cookie('id', id);
+    res.redirect('/urls');
+  } else if (findUserByEmail(email)) {
+    res.render('registration', { user: null, errorMsg: 'Email already in use' });
+  } else {
+    res.status(400);
+    res.render('registration', { user: null, errorMsg: 'Invalid email or password' });
+  }
+  console.log(users)
+});
+
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
+  res.cookie('id', req.body.id);
   res.redirect('back');
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('id');
   res.redirect('/urls');
 });
 

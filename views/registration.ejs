@@ -3,7 +3,7 @@
 <head>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <title>URL - TinyApp Example</title>
+  <title>Register</title>
 </head>
 
 <body>
@@ -20,6 +20,9 @@
           <label for="longURL">Password</label>
           <input class="form-control mb-3" type="password" name="password" value="">
           <button class="btn btn-lg btn-primary" type="submit">Register</button>
+          <% if(errorMsg) { %>
+            <p class="font-weight-bold text-danger mt-3 mb-0"><%= errorMsg %></p>
+          <%}%>
         </form>
       </div>
     </div>
