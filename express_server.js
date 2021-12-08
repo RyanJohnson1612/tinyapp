@@ -86,14 +86,19 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-app.get('/register', (req, res) => {
-  const templateVars = { user: findUserById(req.cookies.id), errorMsg: null };
-  res.render('registration', templateVars);
-});
-
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
+});
+
+app.get('/login', (req, res) => {
+  const templateVars = { user: findUserById(req.cookies.id), errorMsg: null };
+  res.render('login', templateVars);
+});
+
+app.get('/register', (req, res) => {
+  const templateVars = { user: findUserById(req.cookies.id), errorMsg: null };
+  res.render('registration', templateVars);
 });
 
 // POST Routes
