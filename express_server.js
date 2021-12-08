@@ -50,8 +50,17 @@ const findUserByEmail = function(email) {
  ****************************/
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'b2xVn2': {
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'eUzup9',
+    visits: 0
+  },
+  '9sm5xK': {
+    longURL: 'http://www.google.com',
+    userID: 'eUzup9',
+    visits: 0
+  }
+    
 };
 
 const users = {
@@ -77,17 +86,23 @@ app.get('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = { user: findUserById(req.cookies.id) };
-  res.render('urls_new', templateVars);
+  if (req.cookies.id) {
+    const templateVars = { user: findUserById(req.cookies.id) };
+    res.render('urls_new', templateVars);
+  } else {
+    res.status(403);
+    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tiny URL.'})
+  }
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: findUserById(req.cookies.id) };
+  const templateVars = { shortURL: req.params.shortURL, url: urlDatabase[req.params.shortURL], user: findUserById(req.cookies.id) };
   res.render('urls_show', templateVars);
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  urlDatabase[req.params.shortURL].visits++;
   res.redirect(longURL);
 });
 
@@ -103,10 +118,20 @@ app.get('/register', (req, res) => {
 
 // POST Routes
 app.post('/urls', (req, res) => {
-  const longURL = req.body.longURL;
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
+  if (req.cookies.id) {
+    const longURL = req.body.longURL;
+    const shortURL = generateRandomString();
+    urlDatabase[shortURL] = { 
+      longURL,
+      userID: req.cookies.id,
+      visits: 0
+    };
+    res.redirect(`/urls/${shortURL}`);
+  } else {
+    res.status(403);
+    res.write('Please register or login to create a new tiny URL');
+    res.end();
+  }
 });
 
 app.post('/urls/:shortURL', (req, res) => {
