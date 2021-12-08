@@ -15,37 +15,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
 /****************************
-  Helper functions
- ****************************/
-
-const generateRandomString = function() {
-  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let randomString = '';
-  for (let i = 0; i < 6; i++) {
-    randomString += chars[Math.floor(Math.random() * 62)];
-  }
-  return randomString;
-};
-
-const findUserById = function(id) {
-  for (const key in users) {
-    if (id === key) {
-      return users[key];
-    }
-  }
-  return null;
-};
-
-const findUserByEmail = function(email) {
-  for (const key in users) {
-    if (email === users[key].email) {
-      return users[key];
-    }
-  }
-  return null;
-};
-
-/****************************
   Data
  ****************************/
 
@@ -60,7 +29,6 @@ const urlDatabase = {
     userID: 'eUzup9',
     visits: 0
   }
-    
 };
 
 const users = {
@@ -70,6 +38,48 @@ const users = {
     password: 'password1'
   }
 };
+
+
+/****************************
+  Helper functions
+ ****************************/
+
+  const generateRandomString = function() {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let randomString = '';
+    for (let i = 0; i < 6; i++) {
+      randomString += chars[Math.floor(Math.random() * 62)];
+    }
+    return randomString;
+  };
+  
+  const findUserById = function(id) {
+    for (const key in users) {
+      if (id === key) {
+        return users[key];
+      }
+    }
+    return null;
+  };
+  
+  const findUserByEmail = function(email) {
+    for (const key in users) {
+      if (email === users[key].email) {
+        return users[key];
+      }
+    }
+    return null;
+  };
+  
+  const urlsForUser = function(id) {
+    let urls = {};
+    for (const url in urlDatabase) {
+      if(urlDatabase[url].userID === id) {
+        urls[url] = urlDatabase[url];
+      }
+    }
+    return urls;
+  }
 
 /****************************
   Routes
@@ -81,7 +91,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, user: findUserById(req.cookies.id) };
+  const templateVars = { urls: urlsForUser(req.cookies.id), user: findUserById(req.cookies.id) };
   res.render('urls_index', templateVars);
 });
 
