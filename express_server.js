@@ -121,7 +121,7 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   
-  if(email && password && !findUserByEmail(email)) {
+  if (email && password && !findUserByEmail(email)) {
     users[id] = {
       id,
       email,
@@ -139,8 +139,17 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  res.cookie('id', req.body.id);
-  res.redirect('back');
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = findUserByEmail(email);
+
+  if (user && user.password === password) {
+    res.cookie('id', user.id);
+    res.redirect('/urls');
+  } else {
+    res.status(403);
+    res.render('login', { user: null, errorMsg: 'Invalid email or password' });
+  }
 });
 
 app.post('/logout', (req, res) => {
