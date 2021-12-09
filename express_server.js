@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
   keys: ['2f680bb1-5a39-4b5b-926b-0617dcee7623', '3bbf5d82-f02d-49e0-a45e-2ef0a70b9021']
-}))
+}));
 
 /****************************
   Data
@@ -39,8 +39,8 @@ const urlDatabase = {
 const users = {
   'eUzup9': {
     userID: 'eUzup9',
-    email: 'jim@testman.com',
-    password: bcrypt.hashSync('password1', 10)
+    email: 'test@user.com',
+    password: bcrypt.hashSync('123456', 10)
   }
 };
 
@@ -48,63 +48,85 @@ const users = {
   Routes
  ****************************/
 app.get('/', (req, res) => {
+  if (!req.session.userID) {
+    res.redirect('login');
+  }
   res.redirect('/urls');
 });
 
 // Show url index page
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlsForUser(req.session.userID, urlDatabase), user: findUserById(req.session.userID, users) };
+  const userID = req.session.userID;
+  const templateVars = { urls: urlsForUser(userID, urlDatabase), user: findUserById(userID, users) };
   res.render('urls_index', templateVars);
 });
 
 // Show new url form
 app.get('/urls/new', (req, res) => {
+  const userID = req.session.userID;
   // Check that user is logged in
-  if (req.session.userID) {
-    const templateVars = { user: findUserById(req.session.userID, users) };
+  if (userID) {
+    const templateVars = { user: findUserById(userID, users) };
     res.render('urls_new', templateVars);
   } else {
     res.status(403);
-    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tinyURL.'})
+    res.redirect('/login');
   }
 });
 
 // Show url update form
 app.get('/urls/:shortURL', (req, res) => {
-  // Check that user is logged in and that url belongs to user
-  if (req.session.userID && isUsersUrl(req.session.userID, req.params.shortURL, urlDatabase)) {
-    const templateVars = { shortURL: req.params.shortURL, url: urlDatabase[req.params.shortURL], user: findUserById(req.session.userID, users), errorMsg: null };
+  const shortURL = req.params.shortURL;
+  const userID = req.session.userID;
+
+  // Check if url exists in database
+  if (!Object.keys(urlDatabase).includes(shortURL)) {
+    const templateVars = { shortURL: shortURL, url: urlDatabase[shortURL], user: findUserById(userID, users), errorMsg: `TinyURL "${shortURL}" does not exist` };
     res.render('urls_show', templateVars);
-  } else if (req.session.userID && !isUsersUrl(req.session.userID, req.params.shortURL, urlDatabase)) {
-    const templateVars = { shortURL: req.params.shortURL, url: urlDatabase[req.params.shortURL], user: findUserById(req.session.userID, users), errorMsg: 'This isn\'t your url, so you cannot update it.' };
+  }
+  // Check that user is logged in and that url belongs to user
+  if (userID && isUsersUrl(userID, shortURL, urlDatabase)) {
+    const templateVars = { shortURL: shortURL, url: urlDatabase[shortURL], user: findUserById(userID, users), errorMsg: null };
+    res.render('urls_show', templateVars);
+  } else if (userID && !isUsersUrl(userID, shortURL, urlDatabase)) {
+    const templateVars = { shortURL: shortURL, url: urlDatabase[shortURL], user: findUserById(userID, users), errorMsg: 'This isn\'t your url, so you cannot update it.' };
     res.render('urls_show', templateVars);
   } else {
     res.status(403);
-    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tinyURL.'})
+    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tinyURL.'});
   }
 });
 
 // Short url redirect route
 app.get('/u/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
 
   // Check that url exists in database
-  if(urlDatabase[req.params.shortURL]) {
-    const longURL = urlDatabase[req.params.shortURL].longURL;
-    urlDatabase[req.params.shortURL].visits++;
+  if (urlDatabase[shortURL]) {
+    const longURL = urlDatabase[shortURL].longURL;
+    urlDatabase[shortURL].visits++;
     res.redirect(longURL);
   } else {
-    res.render('error', { url: req.params.shortURL });
+    res.render('error', { url: shortURL });
   }
 });
 
 // Show login form
 app.get('/login', (req, res) => {
+  if (req.session.userID) {
+    res.redirect('/urls');
+  }
+
   const templateVars = { user: findUserById(req.session.userID, users), errorMsg: null };
   res.render('login', templateVars);
 });
 
 // Show registration form
 app.get('/register', (req, res) => {
+  if (req.session.userID) {
+    res.redirect('/urls');
+  }
+
   const templateVars = { user: findUserById(req.session.userID, users), errorMsg: null };
   res.render('registration', templateVars);
 });
@@ -118,7 +140,7 @@ app.post('/urls', (req, res) => {
   if (req.session.userID) {
     const longURL = req.body.longURL;
     const shortURL = generateRandomString();
-    urlDatabase[shortURL] = { 
+    urlDatabase[shortURL] = {
       longURL,
       userID: req.session.userID,
       visits: 0
@@ -137,10 +159,10 @@ app.post('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const visits = urlDatabase[shortURL].visits;
 
-  // Check that url belongs to user 
-  if(isUsersUrl(req.session.userID, shortURL, urlDatabase)) {
-    urlDatabase[shortURL] = { 
-      longURL, 
+  // Check that url belongs to user
+  if (isUsersUrl(req.session.userID, shortURL, urlDatabase)) {
+    urlDatabase[shortURL] = {
+      longURL,
       visits,
       userID: req.session.userID
     };
@@ -156,14 +178,14 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = bcrypt.hashSync(req.body.password, 10);
+  const password = req.body.password;
   
   // Check that input are valid and user doesn't already exist'
   if (email && password && !findUserByEmail(email, users)) {
     users[id] = {
-      id,
+      userID: id,
       email,
-      password
+      password: bcrypt.hashSync(password, 10)
     };
     req.session.userID = id;
     res.redirect('/urls');
@@ -187,24 +209,28 @@ app.post('/login', (req, res) => {
     res.redirect('/urls');
   } else {
     res.status(403);
-    res.render('login', { user: null, errorMsg: 'Invalid email or password' });
+    res.render('login', { user: null, errorMsg: 'Incorrect email or password' });
   }
 });
 
 // User logout route
 app.post('/logout', (req, res) => {
-  req.session.userID = null;
+  req.session = null;
   res.redirect('/urls');
 });
 
 // Delete short url
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
+  const userID = req.session.userID;
 
   // Check if url belongs to user
-  if(isUsersUrl(req.session.userID, shortURL, urlDatabase)) {
+  if (isUsersUrl(userID, shortURL, urlDatabase)) {
     delete urlDatabase[shortURL];
     res.redirect('/urls');
+  } else if (userID && !isUsersUrl(userID, shortURL, urlDatabase)) {
+    const templateVars = { shortURL: shortURL, url: urlDatabase[shortURL], user: findUserById(userID, users), errorMsg: 'This isn\'t your url, so you cannot delete it.' };
+    res.render('urls_show', templateVars);
   } else {
     res.status(403);
     res.write('This isn\'t your url, you cannot delete it.');

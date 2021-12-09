@@ -28,7 +28,7 @@ const findUserByEmail = function(email, database) {
 const urlsForUser = function(id, database) {
   let urls = {};
   for (const url in database) {
-    if(database[url].userID === id) {
+    if (database[url].userID === id) {
       urls[url] = database[url];
     }
   }
@@ -36,7 +36,7 @@ const urlsForUser = function(id, database) {
 };
 
 const isUsersUrl = function(id, url, database) {
-  if(database[url]) {
+  if (database[url]) {
     return database[url].userID === id;
   }
   return false;
