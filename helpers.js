@@ -36,7 +36,10 @@ const urlsForUser = function(id, database) {
 };
 
 const isUsersUrl = function(id, url, database) {
-  return database[url].userID === id;
+  if(database[url]) {
+    return database[url].userID === id;
+  }
+  return false;
 };
 
 module.exports = {
