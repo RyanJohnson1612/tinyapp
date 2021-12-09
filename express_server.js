@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
+
 const app = express();
 const PORT = 8080;
 
@@ -35,7 +37,7 @@ const users = {
   'eUzup9': {
     id: 'eUzup9',
     email: 'jim@testman.com',
-    password: 'password1'
+    password: bcrypt.hashSync('password1', 10)
   }
 };
 
@@ -105,7 +107,7 @@ app.get('/urls/new', (req, res) => {
     res.render('urls_new', templateVars);
   } else {
     res.status(403);
-    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tiny URL.'})
+    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tinyURL.'})
   }
 });
 
@@ -118,7 +120,7 @@ app.get('/urls/:shortURL', (req, res) => {
     res.render('urls_show', templateVars);
   } else {
     res.status(403);
-    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tiny URL.'})
+    res.render('registration', { user: null, errorMsg: 'Please register or login to create a new tinyURL.'})
   }
 });
 
@@ -182,7 +184,7 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
   
   if (email && password && !findUserByEmail(email)) {
     users[id] = {
@@ -198,7 +200,6 @@ app.post('/register', (req, res) => {
     res.status(400);
     res.render('registration', { user: null, errorMsg: 'Invalid email or password' });
   }
-  console.log(users)
 });
 
 app.post('/login', (req, res) => {
@@ -206,7 +207,7 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   const user = findUserByEmail(email);
 
-  if (user && user.password === password) {
+  if (user && bcrypt.compareSync(password, user.password)) {
     res.cookie('id', user.id);
     res.redirect('/urls');
   } else {
