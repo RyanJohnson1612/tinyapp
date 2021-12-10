@@ -14,7 +14,9 @@
           <div class="card-body">
             <h5 class="card-title">TinyURL for: <%= url.longURL %></h5>
             <p class="card-text">Short URL: <a href="/u/<%= shortURL %>" target="_blank"><%= shortURL %></a></p>
-            <h6 class="mb-0">TinyURL visited <%= url.visits %> times</h6>
+            <h6 class="mb-2">TinyURL visited: <%= url.visits %> times</h6>
+            <h6 class="mb-2">Unique TinyURL visits: <%= url.uniqueVisits %></h6>
+            <p class="mb-0 font-weight-bold"><%= new Date(url.dateCreated).toString().replace('(Coordinated Universal Time)', '') %></p>
           </div>
         <div class="card-footer text-muted">
           <h4>Edit</h4>

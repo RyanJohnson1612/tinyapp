@@ -27,12 +27,16 @@ const urlDatabase = {
   'b2xVn2': {
     longURL: 'http://www.lighthouselabs.ca',
     userID: 'eUzup9',
-    visits: 0
+    visits: 0,
+    uniqueVisits: 0,
+    dateCreated: Date.now()
   },
   '9sm5xK': {
     longURL: 'http://www.google.com',
     userID: 'eUzup9',
-    visits: 0
+    visits: 0,
+    uniqueVisits: 0,
+    dateCreated: Date.now()
   }
 };
 
@@ -104,6 +108,12 @@ app.get('/u/:shortURL', (req, res) => {
   // Check that url exists in database
   if (urlDatabase[shortURL]) {
     const longURL = urlDatabase[shortURL].longURL;
+
+    // If user who clicked link hasn't visited it before add a cookie and increment unique visits
+    if (!req.session.visited) {
+      req.session.visited = true;
+      urlDatabase[shortURL].uniqueVisits++;
+    }
     urlDatabase[shortURL].visits++;
     res.redirect(longURL);
   } else {
@@ -143,7 +153,9 @@ app.post('/urls', (req, res) => {
     urlDatabase[shortURL] = {
       longURL,
       userID: req.session.userID,
-      visits: 0
+      visits: 0,
+      uniqueVisits: 0,
+      dateCreated: Date.now()
     };
     res.redirect(`/urls/${shortURL}`);
   } else {
