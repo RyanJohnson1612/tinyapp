@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
+const methodOverride = require("method-override");
 const bcrypt = require('bcryptjs');
 const { generateRandomString, findUserById, findUserByEmail, urlsForUser, isUsersUrl } = require('./helpers');
 const app = express();
@@ -18,6 +19,7 @@ app.use(cookieSession({
   name: 'session',
   keys: ['2f680bb1-5a39-4b5b-926b-0617dcee7623', '3bbf5d82-f02d-49e0-a45e-2ef0a70b9021']
 }));
+app.use(methodOverride('_method'));
 
 /****************************
   Data
@@ -165,27 +167,6 @@ app.post('/urls', (req, res) => {
   }
 });
 
-// Update short url
-app.post('/urls/:shortURL', (req, res) => {
-  const longURL = req.body.longURL;
-  const shortURL = req.params.shortURL;
-  const visits = urlDatabase[shortURL].visits;
-
-  // Check that url belongs to user
-  if (isUsersUrl(req.session.userID, shortURL, urlDatabase)) {
-    urlDatabase[shortURL] = {
-      longURL,
-      visits,
-      userID: req.session.userID
-    };
-    res.redirect('/urls');
-  } else {
-    res.status(403);
-    res.write('You isn\'t your url, you cannot update it.');
-    res.end();
-  }
-});
-
 // Create new users
 app.post('/register', (req, res) => {
   const id = generateRandomString();
@@ -231,8 +212,33 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+// PUT Routes
+
+// Update short url
+app.put('/urls/:shortURL', (req, res) => {
+  const longURL = req.body.longURL;
+  const shortURL = req.params.shortURL;
+  const visits = urlDatabase[shortURL].visits;
+
+  // Check that url belongs to user
+  if (isUsersUrl(req.session.userID, shortURL, urlDatabase)) {
+    urlDatabase[shortURL] = {
+      longURL,
+      visits,
+      userID: req.session.userID
+    };
+    res.redirect('/urls');
+  } else {
+    res.status(403);
+    res.write('You isn\'t your url, you cannot update it.');
+    res.end();
+  }
+});
+
+// DELETE Routes
+
 // Delete short url
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.delete('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.session.userID;
 
