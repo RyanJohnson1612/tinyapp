@@ -33,7 +33,7 @@
                 <td><%= urls[url].visits %></td>
                 <td><a href="/urls/<%= url %>" class="btn btn-outline-primary">Edit</a></td>
                 <td>
-                  <form action="/urls/<%= url %>/delete" method="post">
+                  <form action="/urls/<%= url %>/delete?_method=DELETE" method="post">
                     <input class="btn btn-danger" type="submit" value="Delete">
                   </form>
                 </td>
